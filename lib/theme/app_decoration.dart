@@ -10,7 +10,12 @@ class AppDecoration {
         colors: [ColorSchemes.primaryColorScheme.secondaryContainer,
           ColorSchemes.primaryColorScheme.primary])
   );
+
   static BoxDecoration get outlineBlueGray => BoxDecoration(
     color:LightColors().gray200,
+  );
+
+  static BoxDecoration get secondaryBox => BoxDecoration(
+    color: LightColors().green300,
   );
 }

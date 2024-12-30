@@ -62,7 +62,13 @@ class TextThemes {
       fontSize: 20.0, // Se recomienda usar valores double para fontSize
       fontFamily: 'Inter',
       fontWeight: FontWeight.w600,
-    )
+    ),
+    bodySmall: TextStyle(
+      color: lightColors.gray700,
+      fontSize: 80.0,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w500,
+    ) 
   );
 }
 
@@ -80,4 +86,5 @@ class ColorSchemes {
 class LightColors{
   Color get gray200 => Color(0XFFE7E7E7);
   Color get gray700 => Color(0XFF49454F);
+  Color get green300 => Color(0XFFA5C5C4);
 }

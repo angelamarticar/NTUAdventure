@@ -59,7 +59,7 @@ class _calendarpage extends State<CalendarPage>{
                   color: theme.colorScheme.primaryContainer, // Navy blue background
                   borderRadius: BorderRadius.circular(16),
                 ),
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -80,40 +80,10 @@ class _calendarpage extends State<CalendarPage>{
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TableCalendar(
-                      firstDay: DateTime.utc(2010, 10, 16),
-                      lastDay: DateTime.utc(2030, 3, 14),
-                      focusedDay: selectedDay,
-                      currentDay: selectedDay,
-                      startingDayOfWeek: StartingDayOfWeek.monday,
-                      calendarStyle: CalendarStyle(
-                        todayDecoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        defaultTextStyle: TextStyle(color: Colors.white),
-                        weekendTextStyle: TextStyle(color: lightColors.gray200),
-                        outsideTextStyle: TextStyle(color: Colors.grey[500]),
-                        disabledTextStyle: TextStyle(color: Colors.grey[600]),
-                      ),
-                      headerStyle: HeaderStyle(
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                        leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
-                        rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
-                        titleTextStyle: TextStyle(color: Colors.white, fontSize: 16),
-                        decoration: BoxDecoration(color: Colors.transparent),
-                      ),
-                      daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14, // Tamaño ajustado para mayor visibilidad
-                        ),
-                        weekendStyle: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14, // Tamaño ajustado para mayor visibilidad
-                        ),
-                      ),
+                    SizedBox(
+                      height: 350.0,
+                      width: 500.0,
+                      child: CustomTableCalendar(selectedDay: selectedDay),
                     ),
                   ],
                 ),
@@ -134,12 +104,21 @@ class _calendarpage extends State<CalendarPage>{
                       ],
                     ),
                     Container(
-                      height: 100, // Height of the tab content
+                      height: 140.0, // Height of the tab content
                       child: TabBarView(
                         children: [
                           // My events tab
                           ListView(
+                            padding: EdgeInsets.only(
+                              top:10.0,
+                              bottom: 10.0
+                            ),
                             children: [
+                              EventCard(
+                                title: "Nafplio trip",
+                                date: "10/11/2024",
+                                imageUrl: "https://via.placeholder.com/150",
+                              ),
                               EventCard(
                                 title: "Nafplio trip",
                                 date: "10/11/2024",
@@ -168,6 +147,65 @@ class _calendarpage extends State<CalendarPage>{
 
 }
 
+class CustomTableCalendar extends StatelessWidget {
+  const CustomTableCalendar({
+    super.key,
+    required this.selectedDay,
+  });
+
+  final DateTime selectedDay;
+
+  @override
+  Widget build(BuildContext context) {
+    return TableCalendar(
+      shouldFillViewport: true,
+      firstDay: DateTime.utc(2010, 10, 16),
+      lastDay: DateTime.utc(2030, 3, 14),
+      focusedDay: selectedDay,
+      currentDay: selectedDay,
+      startingDayOfWeek: StartingDayOfWeek.monday,
+      calendarStyle: CalendarStyle(
+        todayDecoration: BoxDecoration(
+          color: theme.colorScheme.primary,
+          shape: BoxShape.circle,
+        ),
+        defaultTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 18.0,),
+        weekendTextStyle: TextStyle(
+          color: lightColors.gray200,
+          fontSize: 18.0,),
+        outsideTextStyle: TextStyle(
+          color: Colors.grey[500],
+          fontSize: 18.0),
+        disabledTextStyle: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 18.0,)
+      ),
+      headerStyle: HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+        leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
+        rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+        decoration: BoxDecoration(color: Colors.transparent),
+      ),
+      daysOfWeekStyle: DaysOfWeekStyle(
+        weekdayStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 14, // Tamaño ajustado para mayor visibilidad
+        ),
+        weekendStyle: TextStyle(
+          color: Colors.white70,
+          fontSize: 14, // Tamaño ajustado para mayor visibilidad
+        ),
+      ),
+    );
+  }
+}
+
+
+
 class EventCard extends StatelessWidget {
   final String title;
   final String date;
@@ -183,7 +221,6 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 4,
       child: Row(
         children: [
           ClipRRect(
@@ -202,7 +239,7 @@ class EventCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(fontWeight: FontWeight.bold, 
-                fontSize: 20,
+                fontSize: 18,
                 color: theme.colorScheme.onPrimary),
               ),
               SizedBox(height: 4),

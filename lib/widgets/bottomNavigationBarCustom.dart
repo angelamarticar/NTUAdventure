@@ -9,7 +9,7 @@ Widget BottomNavigationBarCustom(int selectedIndex, BuildContext context) {
 
   return Container(
     color: theme.colorScheme.primary,
-    padding: EdgeInsets.only(top:10.0),
+    padding: EdgeInsets.only(top:5.0),
     child: BottomNavigationBar(
         iconSize: 36.0,
         backgroundColor: theme.colorScheme.primary,
