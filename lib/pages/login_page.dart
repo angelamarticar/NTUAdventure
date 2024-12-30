@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ntuadventure/pages/calendar_page.dart';
 import '../theme/app_decoration.dart';
 import '../pages/home_page.dart';
 
@@ -104,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ||(username=="giorgio"&& password == "loveAthens")) {
                                         Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => HomePage()),
+                                        MaterialPageRoute(builder: (context) => CalendarPage()),
                                         );
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 
 ThemeData get theme => ThemeHelper().themedata();
+LightColors get lightColors => ThemeHelper().themeLightColors();
 
 class ThemeHelper{
+
+  LightColors _getLightColors(){
+    return LightColors();
+  }
+
   ThemeData _getThemeData(){
     var colorScheme = ColorSchemes.primaryColorScheme;
     return ThemeData(
@@ -26,6 +32,7 @@ class ThemeHelper{
   );
   }
 
+  LightColors themeLightColors()=> _getLightColors();
   ThemeData themedata() => _getThemeData();
 }
 
@@ -72,4 +79,5 @@ class ColorSchemes {
 
 class LightColors{
   Color get gray200 => Color(0XFFE7E7E7);
+  Color get gray700 => Color(0XFF49454F);
 }
