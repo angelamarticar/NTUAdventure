@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ntuadventure/theme/theme_helper.dart';
 import '../theme/app_decoration.dart';
+import '../pages/home_page.dart';
 
 
 class LoginPage extends StatefulWidget{
@@ -40,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context){
 
     final ThemeData theme= Theme.of(context);
-
 
     return Scaffold(
       body: GestureDetector(
@@ -95,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                                 _textFieldName(_usernameController, _usernameFocusNode),
                                 SizedBox(height: 10.0,),
                                 _textFieldPassword(_passwordController),
-                                SizedBox(height: 40,),
+                                SizedBox(height: 30,),
                                 ElevatedButton(
                                   onPressed: (){
                                     if (_formKey.currentState!.validate()) {
@@ -116,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: theme.primaryColor,
-                                    padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0)
+                                    padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 25.0)
                                   )
                                   , 
                                   child: Text(
@@ -127,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                               )
                             ),
                             
-                            SizedBox(height: 20,)
+                            SizedBox(height: 20.0,)
                           ],
                         ),
                       )
@@ -200,16 +199,3 @@ Widget _textFieldPassword(TextEditingController myController) {
   );
 }
 
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Page'),
-      ),
-      body: Center(
-        child: Text('Welcome to the Home Page!'),
-      ),
-    );
-  }
-}
