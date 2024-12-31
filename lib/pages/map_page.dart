@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
-import 'package:ntuadventure/pages/calendar_page.dart';
-import '../theme/app_decoration.dart';
-import '../pages/home_page.dart';
+import '../widgets/bottomNavigationBarCustom.dart';
+import 'dart:io';
+import 'package:logging/logging.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+final Logger logger = Logger('MapMarkersLogger');
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -14,63 +16,127 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
 
-  Location _locationController = new Location();
 
-  static const LatLng _pGoogleplex= LatLng(37.977695472904564, 23.783499245883448);
-  LatLng? _currentP= null;
+  static const LatLng _ntuaLocation= LatLng(37.977695472904564, 23.783499245883448);
+  int _selectedIndex= 0;
+  late GoogleMapController _mapController;
+
+  
+  BitmapDescriptor schoolIcon= BitmapDescriptor.defaultMarker;
+  Set<Marker> _markers = {};
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    getLocationUpdates();
+    _setupLogging(); // Configura el logging
+    _loadMarkers();
+  }
+
+
+  Future<void> _loadMarkers() async {
+    await BitmapDescriptor.asset(ImageConfiguration(size: Size(50.0, 50.0)), 'assets/images/school.png')
+    .then((value){
+      schoolIcon= value;
+    });
+    final newMarkers = await loadMarkersFromFile('assets/files/schoolLocations.txt', schoolIcon);
+    setState(() {
+      _markers.addAll(newMarkers);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: GoogleMap(
-        myLocationButtonEnabled: true,
-        myLocationEnabled: true,
-        initialCameraPosition: CameraPosition(
-                          target: _pGoogleplex,
-                          zoom: 16.0),
-        markers: {
-          Marker(
-            markerId: MarkerId("_sourceLocation"), 
-            icon: BitmapDescriptor.defaultMarker)
+      bottomNavigationBar: BottomNavigationBarCustom(
+        _selectedIndex, context),
+      body: SafeArea(
+        child: GoogleMap(
+          onMapCreated: (GoogleMapController controller){
+            _mapController=controller;
+          },
+          myLocationButtonEnabled: true,
+          myLocationEnabled: true,
+          initialCameraPosition: CameraPosition(
+                            target: _ntuaLocation,
+                            zoom: 16.0),
+          markers: _markers,
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          _moveCameraToNewLocation(_mapController, _ntuaLocation);
         },
-        )
+        tooltip: "Move to NTUA",
+        child: Icon(Icons.school),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
-  Future<void> getLocationUpdates() async{
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
 
-    _serviceEnabled = await _locationController.serviceEnabled(); //Location active on the deviece?
-    if(_serviceEnabled){
-      _serviceEnabled = await _locationController.requestService(); //Request access to location
-    }else{
-      return;
-    }
 
-    _permissionGranted = await _locationController.hasPermission(); //permission to access the location?
-    if(_permissionGranted== PermissionStatus.denied){ //If it doesnt have permission
-      _permissionGranted= await _locationController.requestPermission();//Then request for permission
-      if(_permissionGranted != PermissionStatus.granted){
-        return;
+}
+
+
+void _setupLogging() {
+    Logger.root.level = Level.ALL; // Define el nivel de logging
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
+}
+
+
+void _moveCameraToNewLocation(GoogleMapController mapController, LatLng newLoc){
+  mapController.animateCamera(
+    CameraUpdate.newLatLng(newLoc),
+  );
+}
+
+Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor category) async {
+  try {
+    logger.info('********************************************************Intentando leer el archivo desde $filePath');
+
+
+    // Usa rootBundle para cargar el contenido del archivo
+    final String fileContent = await rootBundle.loadString(filePath);
+
+    logger.info('********************************************Archivo leído con éxito. Procesando líneas...');
+    List<String> lines = fileContent.split('\n'); // Divide por líneas
+
+    return lines.asMap().entries.map((entry) {
+      int index = entry.key;
+      String line = entry.value.trim();
+
+      // Valida el formato de la línea
+      if (line.isEmpty || !line.contains(';')) {
+        logger.warning('Línea inválida: $line');
+        return null;
       }
-    }
 
-    _locationController.onLocationChanged.listen((LocationData currentLocation){
-        if(currentLocation.latitude!= null && currentLocation.longitude!=null){
-          setState(() {
-            _currentP= LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          });
-        }
-    });
+      try {
+        List<String> coords = line.split(';');
+        double latitude = double.parse(coords[0].trim());
+        double longitude = double.parse(coords[1].trim());
+        String placeName = coords[2];
+        String info= coords[3].trim();
 
+        return Marker(
+          markerId: MarkerId('marker_$index'),
+          position: LatLng(latitude, longitude),
+          icon: category,
+          infoWindow: InfoWindow(
+            title: placeName,
+            snippet: info,
+            ),
+        );
+      } catch (e) {
+        logger.warning('Error procesando línea: $line - $e');
+        return null;
+      }
+    }).whereType<Marker>().toSet();
+  } catch (e, stackTrace) {
+    logger.severe('****************************Error leyendo el archivo $filePath', e, stackTrace);
+    return {};
   }
 }

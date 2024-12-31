@@ -38,6 +38,7 @@ dependencies:
   intl: ^0.18.0
   google_maps_flutter: ^2.2.1
   location: ^5.0.0
+  logging: ^1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -62,7 +63,8 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/images/Group1.png
+    - assets/images/
+    - assets/files/schoolLocations.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:
