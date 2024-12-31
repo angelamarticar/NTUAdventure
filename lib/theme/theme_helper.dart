@@ -51,6 +51,12 @@ class TextThemes {
       fontFamily: 'Roboto',
       fontWeight: FontWeight.w400,
     ),
+    titleMedium: TextStyle(
+      color: colorScheme.primaryContainer,
+      fontSize: 18.0, // Se recomienda usar valores double para fontSize
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w500,
+    ),
     titleSmall: TextStyle(
       color: colorScheme.primaryContainer,
       fontSize: 14.0, // Se recomienda usar valores double para fontSize
@@ -68,7 +74,13 @@ class TextThemes {
       fontSize: 80.0,
       fontFamily: 'Roboto',
       fontWeight: FontWeight.w500,
-    ) 
+    ),
+    labelSmall:  TextStyle(
+      color: lightColors.gray700,
+      fontSize: 14.0,
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w500,
+    ),
   );
 }
 
