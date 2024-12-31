@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ntuadventure/pages/map_page.dart';
 import '../pages/calendar_page.dart';
 import '../pages/home_page.dart';
 import '../theme/theme_helper.dart';
@@ -27,6 +28,11 @@ Widget BottomNavigationBarCustom(int selectedIndex, BuildContext context) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CalendarPage()), // Calendar Page
+            );
+          }else if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MapPage()), // Map Page
             );
           }
         }, // El callback para actualizar el índice seleccionado
