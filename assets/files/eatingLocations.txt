@@ -1,0 +1,7 @@
+37.977867169880845; 23.78446428518949; NTUA Restaurant; The restaurant at the Zografou Campus is open all day and every day except holidays (Christmas, Easter and summer break)
+37.98740569571366; 23.732647190210173; Architecture canteen; The restaurant at the Patision Campus only opens from Monday to Friday
+37.976562090816586; 23.784322613670685; SEMFE Cafeteria; Open from Monday to Friday 7:30 to 18:00
+37.97673596302656; 23.78505800868656; Chemical Engineering Cafeteria; Open from Monday to Friday 8:00 to 18:00
+37.977953475645364; 23.784307555726706; Mechanical Engineering Cafeteria; Open from Monday to Friday
+37.978772751285085; 23.782947522396036; Electrical Engineering Cafeteria; Open from Monday to Friday 8:00 to 18:00
+37.97563220644974; 23.779201537888294; School of Rural, Surveying and Geoinformatics Cafeteria; Open from Monday to Friday 7:45 to 18:00

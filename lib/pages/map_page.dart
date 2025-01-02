@@ -5,9 +5,9 @@ import 'package:logging/logging.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:custom_info_window/custom_info_window.dart';
 import '../theme/theme_helper.dart';
+import '../pages/camera.dart';
 
-
-final Logger logger = Logger('MapMarkersLogger');
+final Logger logger = Logger('MarkersLogger');
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -25,6 +25,7 @@ class _MapPageState extends State<MapPage> {
   final _customInfoWindowController = CustomInfoWindowController();
   
   BitmapDescriptor schoolIcon= BitmapDescriptor.defaultMarker;
+  BitmapDescriptor eatingIcon= BitmapDescriptor.defaultMarker;
   Set<Marker> _markers = {};
 
   @override
@@ -34,18 +35,40 @@ class _MapPageState extends State<MapPage> {
     _loadMarkers();
   }
 
+    @override
+  void dispose() {
+    // Closes the map controller
+    _mapController.dispose();
+    // Closes the custom info window controller
+    _customInfoWindowController.dispose();
+    // Llama a la implementación base de dispose
+    super.dispose();
+  }
+
 
   Future<void> _loadMarkers() async {
     await BitmapDescriptor.asset(ImageConfiguration(size: Size(50.0, 50.0)), 'assets/images/school.png')
     .then((value){
       schoolIcon= value;
     });
-    final newMarkers = await loadMarkersFromFile(
+    await BitmapDescriptor.asset(ImageConfiguration(size: Size(50.0, 50.0)), 'assets/images/eating.png')
+    .then((value){
+      eatingIcon= value;
+    });
+    final newMarkersSchool = await loadMarkersFromFile(
       'assets/files/schoolLocations.txt', 
       schoolIcon, 
-      _customInfoWindowController);
+      _customInfoWindowController,
+      context);
+    final newMarkersEating = await loadMarkersFromFile(
+      'assets/files/eatingLocations.txt', 
+      eatingIcon, 
+      _customInfoWindowController,
+      context);
     setState(() {
-      _markers.addAll(newMarkers);
+      _markers.addAll(newMarkersSchool);
+      _markers.addAll(newMarkersEating);
+      _markers.add(Marker(markerId: MarkerId('value'),position: LatLng(37.980356393725124, 23.789063899730355)));
     });
   }
 
@@ -113,15 +136,16 @@ void _moveCameraToNewLocation(GoogleMapController mapController, LatLng newLoc){
   );
 }
 
-Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor category, CustomInfoWindowController controller) async {
+Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor category, CustomInfoWindowController controller, BuildContext context) async {
   try {
-    logger.info('********************************************************Intentando leer el archivo desde $filePath');
+    logger.info('---------------------------------------trying to read file from: $filePath');
 
 
     // Usa rootBundle para cargar el contenido del archivo
     final String fileContent = await rootBundle.loadString(filePath);
+    
 
-    logger.info('********************************************Archivo leído con éxito. Procesando líneas...');
+    logger.info('---------------------------------------Archivo leído con éxito. Procesando líneas...');
     List<String> lines = fileContent.split('\n'); // Divide por líneas
 
     return lines.asMap().entries.map((entry) {
@@ -130,7 +154,7 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
 
       // Valida el formato de la línea
       if (line.isEmpty || !line.contains(';')) {
-        logger.warning('Línea inválida: $line');
+        logger.warning('***************************************Línea inválida: $index');
         return null;
       }
 
@@ -141,19 +165,37 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
         String placeName = coords[2];
         String info= coords[3].trim();
         LatLng position= LatLng(latitude, longitude);
+        
 
-
-        return Marker(
-          markerId: MarkerId('marker_$index'),
-          position: position,
-          icon: category,
-          onTap: (){
-              controller.addInfoWindow!(
-                CustomizedInfoWindow(placeName, info),
-                LatLng(latitude, longitude)
-              );
-          },
-        );
+        if(context.mounted){
+          if(filePath=='assets/files/schoolLocations.txt'){
+            logger.info(placeName);
+            String imageLink= coords[4].trim();
+              return Marker(
+                markerId: MarkerId('marker_$index'),
+                position: position,
+                icon: category,
+                onTap: (){
+                    controller.addInfoWindow!(
+                      CustomizedInfoWindow(placeName, info, context, imageLink),
+                      LatLng(latitude, longitude)
+                    );
+                },
+            );
+          } else if(filePath=='assets/files/eatingLocations.txt'){  
+            return Marker(
+                markerId: MarkerId('marker_$index'),
+                position: position,
+                icon: category,
+                onTap: (){
+                    controller.addInfoWindow!(
+                      CustomizedInfoWindowPhotos(placeName, info, context),
+                      LatLng(latitude, longitude)
+                    );
+                }
+            );
+          }
+        }
       } catch (e) {
         logger.warning('Error procesando línea: $line - $e');
         return null;
@@ -164,17 +206,17 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
     return {};
   }
 }
-/*
-Widget CustomizedInfoWindowPhotos(String placeName, String info) {
+
+Widget CustomizedInfoWindowPhotos(String placeName, String info, BuildContext context){
   return Container(
     width: 150, // Ajusta el ancho del widget
-    padding: const EdgeInsets.all(8.0),
+    padding: const EdgeInsets.symmetric(horizontal: 10.0),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16.0),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black,
           blurRadius: 6.0,
           offset: const Offset(0, 2),
         ),
@@ -184,41 +226,6 @@ Widget CustomizedInfoWindowPhotos(String placeName, String info) {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        // Dos imágenes en una fila
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child: Image.network(
-                'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg',
-                height: 150.0,
-                width: 100.0,
-                fit: BoxFit.fill,
-              ),
-            ),
-            const SizedBox(width: 8.0),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child: Image.network(
-                'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg',
-                height: 150.0,
-                width: 100.0,
-                fit: BoxFit.fill,
-              ),
-            ),
-            const SizedBox(width: 8.0),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child: Image.network(
-                'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg',
-                height: 150.0,
-                width: 100.0,
-                fit: BoxFit.fill,
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 8.0),
         // Título
         Text(
@@ -238,12 +245,38 @@ Widget CustomizedInfoWindowPhotos(String placeName, String info) {
             color: Colors.grey,
           ),
         ),
+        const SizedBox(height: 8.0),
+        
+        ElevatedButton.icon(
+          label: Text('Share a photo!', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimaryContainer),),
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all<EdgeInsets>(
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.hovered))
+                  return Colors.blue;
+                if (states.contains(WidgetState.focused) ||
+                    states.contains(WidgetState.pressed))
+                  return Colors.blue;
+                return null; // Defer to the widget's default.
+              },
+            ),
+          ),
+          onPressed:  (){ Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CameraScreen()));
+              },
+          icon: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimaryContainer,),
+        )
       ],
     ),
   );
-}*/
+}
 
-Widget CustomizedInfoWindow(String placeName, String info) {
+Widget CustomizedInfoWindow(String placeName, String info, BuildContext context, String imageLink){
   return Container(
     width: 150, // Ajusta el ancho del widget
     padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -286,13 +319,39 @@ Widget CustomizedInfoWindow(String placeName, String info) {
           child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.0),
                 child: Image.network(
-                  'https://lh6.googleusercontent.com/proxy/6aMLu1r1U8kfFwZYFtHLzcXwZ3hEH3G-5jwOVHCMevM8DXWdn7iCtwxKBjaCjL35lGoS2Ir5nR1fNDZyeWBydq1EUJ85gA5V2muRbHJNeF5uZo8R4W7img',
-                  height: 150.0,
+                  imageLink,
+                  height: 130.0,
                   width: 320.0,
                   fit: BoxFit.fill,
                 ),
           ),
         ),
+        ElevatedButton.icon(
+          label: Text('Share a photo!', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimaryContainer),),
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all<EdgeInsets>(
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            ),
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.hovered)) {
+                  return Colors.blue;
+                }
+                if (states.contains(WidgetState.focused) ||
+                    states.contains(WidgetState.pressed)) {
+                  return Colors.blue;
+                }
+                return null; // Defer to the widget's default.
+              },
+            ),
+          ),
+          onPressed:  (){ Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CameraScreen()));
+              },
+          icon: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimaryContainer,),
+        )
       ],
     ),
   );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ntuadventure/pages/calendar_page.dart';
 import 'package:ntuadventure/pages/home_page.dart';
 import 'package:ntuadventure/pages/login_page.dart';
+import 'package:ntuadventure/pages/map_page.dart';
 import 'package:ntuadventure/theme/theme_helper.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ntuadventure',
       theme: theme,
-      home: CalendarPage(),
+      home: MapPage(),
     );
   }
 }
