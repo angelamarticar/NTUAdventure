@@ -38,7 +38,7 @@ Widget BottomNavigationBarCustom(int selectedIndex, BuildContext context) {
           }else if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CoursePage()), //
+              MaterialPageRoute(builder: (context) => CoursePage()), //Course PAge
             );
           }
         }, // El callback para actualizar el índice seleccionado

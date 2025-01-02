@@ -2,34 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ntuadventure/widgets/bottomNavigationBarCustom.dart';
 import '../theme/theme_helper.dart';
+import 'event_page.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class CalendarPage extends StatefulWidget{
+class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
 
   @override
   State<CalendarPage> createState() => _calendarpage();
 }
 
-class _calendarpage extends State<CalendarPage>{
-
-  int _selectedIndex= 3;
-
-  
+class _calendarpage extends State<CalendarPage> {
+  int _selectedIndex = 3;
 
   @override
   Widget build(BuildContext context) {
     DateTime selectedDay = DateTime.now();
     String formattedDate = DateFormat('EEE, MMM d').format(selectedDay);
+
     return Scaffold(
-       backgroundColor: theme.colorScheme.onPrimaryContainer,
-       body: SingleChildScrollView(
+      backgroundColor: theme.colorScheme.onPrimaryContainer,
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(top:20.0, left:20.0, right:20.0, bottom: 20.0),
+          padding: const EdgeInsets.only(
+              top: 20.0, left: 20.0, right: 20.0, bottom: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 20.0,),
+              SizedBox(height: 20.0),
               // Search Bar
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -56,7 +56,7 @@ class _calendarpage extends State<CalendarPage>{
               // Calendar
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer, // Navy blue background
+                  color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -104,28 +104,60 @@ class _calendarpage extends State<CalendarPage>{
                       ],
                     ),
                     Container(
-                      height: 140.0, // Height of the tab content
+                      height: 140.0,
                       child: TabBarView(
                         children: [
                           // My events tab
                           ListView(
-                            padding: EdgeInsets.only(
-                              top:10.0,
-                              bottom: 10.0
-                            ),
+                            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
                             children: [
-                              EventCard(
-                                title: "Nafplio trip",
-                                date: "10/11/2024",
-                                imageUrl: "https://via.placeholder.com/150",
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EventDetailsPage(
+                                        eventTitle: "Nafplio trip",
+                                        eventDetails: "An exciting trip to Nafplio with sightseeing and cultural activities.",
+                                        eventDate: "10/11/2024",
+                                        meetingPoint: "Metaxourgeio Metro Station",
+                                        time: "Sunday 10/11 at 9:00 AM",
+                                        price: "15€", // Dummy data
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: EventCard(
+                                  title: "Nafplio trip",
+                                  date: "10/11/2024",
+                                  imageUrl: "https://via.placeholder.com/150",
+                                ),
                               ),
-                              EventCard(
-                                title: "Nafplio trip",
-                                date: "10/11/2024",
-                                imageUrl: "https://via.placeholder.com/150",
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EventDetailsPage(
+                                        eventTitle: "Music Festival",
+                                        eventDetails: "Enjoy live music and performances.",
+                                        eventDate: "12/11/2024",
+                                        meetingPoint: "Central Park Stage",
+                                        time: "Saturday 12/11 at 6:00 PM",
+                                        price: "Free", // Dummy data
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: EventCard(
+                                  title: "Music Festival",
+                                  date: "12/11/2024",
+                                  imageUrl: "https://via.placeholder.com/150",
+                                ),
                               ),
                             ],
                           ),
+
                           // Next events tab
                           Center(
                             child: Text("No upcoming events"),
@@ -140,11 +172,9 @@ class _calendarpage extends State<CalendarPage>{
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBarCustom(
-        _selectedIndex, context),
+      bottomNavigationBar: BottomNavigationBarCustom(_selectedIndex, context),
     );
   }
-
 }
 
 class CustomTableCalendar extends StatelessWidget {
@@ -171,16 +201,20 @@ class CustomTableCalendar extends StatelessWidget {
         ),
         defaultTextStyle: TextStyle(
           color: Colors.white,
-          fontSize: 18.0,),
+          fontSize: 18.0,
+        ),
         weekendTextStyle: TextStyle(
           color: lightColors.gray200,
-          fontSize: 18.0,),
+          fontSize: 18.0,
+        ),
         outsideTextStyle: TextStyle(
           color: Colors.grey[500],
-          fontSize: 18.0),
+          fontSize: 18.0,
+        ),
         disabledTextStyle: TextStyle(
           color: Colors.grey[600],
-          fontSize: 18.0,)
+          fontSize: 18.0,
+        ),
       ),
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
@@ -193,25 +227,24 @@ class CustomTableCalendar extends StatelessWidget {
       daysOfWeekStyle: DaysOfWeekStyle(
         weekdayStyle: TextStyle(
           color: Colors.white,
-          fontSize: 14, // Tamaño ajustado para mayor visibilidad
+          fontSize: 14,
         ),
         weekendStyle: TextStyle(
           color: Colors.white70,
-          fontSize: 14, // Tamaño ajustado para mayor visibilidad
+          fontSize: 14,
         ),
       ),
     );
   }
 }
 
-
-
 class EventCard extends StatelessWidget {
   final String title;
   final String date;
   final String imageUrl;
 
-  const EventCard({super.key, 
+  const EventCard({
+    super.key,
     required this.title,
     required this.date,
     required this.imageUrl,
@@ -238,9 +271,11 @@ class EventCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(fontWeight: FontWeight.bold, 
-                fontSize: 18,
-                color: theme.colorScheme.onPrimary),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: theme.colorScheme.onPrimary,
+                ),
               ),
               SizedBox(height: 4),
               Text(
