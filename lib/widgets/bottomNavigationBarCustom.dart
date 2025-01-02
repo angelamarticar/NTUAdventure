@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:ntuadventure/pages/course_page.dart';
 import 'package:ntuadventure/pages/map_page.dart';
 import '../pages/calendar_page.dart';
@@ -19,7 +19,8 @@ Widget BottomNavigationBarCustom(int selectedIndex, BuildContext context) {
         selectedItemColor: theme.colorScheme.onPrimaryContainer, // Color del ítem seleccionado
         unselectedItemColor: lightColors.gray700, // Color de los ítems no seleccionados
         currentIndex: selectedIndex, // El índice seleccionado
-        onTap: (index){
+        onTap: (index)async{
+          HapticFeedback.lightImpact();
            if (index == 2) {
             Navigator.push(
               context,

@@ -68,7 +68,6 @@ class _MapPageState extends State<MapPage> {
     setState(() {
       _markers.addAll(newMarkersSchool);
       _markers.addAll(newMarkersEating);
-      _markers.add(Marker(markerId: MarkerId('value'),position: LatLng(37.980356393725124, 23.789063899730355)));
     });
   }
 
@@ -162,7 +161,7 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
         List<String> coords = line.split(';');
         double latitude = double.parse(coords[0].trim());
         double longitude = double.parse(coords[1].trim());
-        String placeName = coords[2];
+        String placeName = coords[2].trim();
         String info= coords[3].trim();
         LatLng position= LatLng(latitude, longitude);
         
@@ -172,7 +171,7 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
             logger.info(placeName);
             String imageLink= coords[4].trim();
               return Marker(
-                markerId: MarkerId('marker_$index'),
+                markerId: MarkerId('marker_$placeName'),
                 position: position,
                 icon: category,
                 onTap: (){
@@ -184,7 +183,7 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
             );
           } else if(filePath=='assets/files/eatingLocations.txt'){  
             return Marker(
-                markerId: MarkerId('marker_$index'),
+                markerId: MarkerId('marker_$placeName'),
                 position: position,
                 icon: category,
                 onTap: (){
@@ -195,6 +194,8 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
                 }
             );
           }
+        } else{
+          logger.warning('Error loading context');
         }
       } catch (e) {
         logger.warning('Error procesando línea: $line - $e');
@@ -326,32 +327,6 @@ Widget CustomizedInfoWindow(String placeName, String info, BuildContext context,
                 ),
           ),
         ),
-        ElevatedButton.icon(
-          label: Text('Share a photo!', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimaryContainer),),
-          style: ButtonStyle(
-            padding: WidgetStateProperty.all<EdgeInsets>(
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            ),
-            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.hovered)) {
-                  return Colors.blue;
-                }
-                if (states.contains(WidgetState.focused) ||
-                    states.contains(WidgetState.pressed)) {
-                  return Colors.blue;
-                }
-                return null; // Defer to the widget's default.
-              },
-            ),
-          ),
-          onPressed:  (){ Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CameraScreen()));
-              },
-          icon: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimaryContainer,),
-        )
       ],
     ),
   );
