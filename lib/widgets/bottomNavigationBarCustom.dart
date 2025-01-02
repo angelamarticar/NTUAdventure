@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ntuadventure/pages/course_page.dart';
 import 'package:ntuadventure/pages/map_page.dart';
 import '../pages/calendar_page.dart';
 import '../pages/home_page.dart';
@@ -33,6 +34,11 @@ Widget BottomNavigationBarCustom(int selectedIndex, BuildContext context) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MapPage()), // Map Page
+            );
+          }else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CoursePage()), //
             );
           }
         }, // El callback para actualizar el índice seleccionado
