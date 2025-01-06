@@ -87,8 +87,6 @@ class DatabaseHelper {
       // Create Trip Signups Table
       await db.execute('''
         CREATE TABLE trip_signups(
-          trip_id INTEGER NOT NULL,
-          user_id INTEGER NOT NULL,
           signup_date TEXT NOT NULL,
           PRIMARY KEY (trip_id, user_id),
           FOREIGN KEY (trip_id) REFERENCES events (id) ON DELETE CASCADE,
@@ -99,71 +97,130 @@ class DatabaseHelper {
       throw Exception("Error creating tables: $e");
     }
   }
-
+  /*
   Future<void> insertDummyData() async {
     final db = await database;
+    Batch batch = db.batch();
 
-    // Dummy Courses Data
-    List<Map<String, dynamic>> courses = [
+    // Add dummy users
+    List<Map<String, dynamic>> users = [
       {
-        'name': 'Warp Drive Mechanics',
-        'description': 'Learn the fundamentals of faster-than-light travel.',
-        'school': 'Engineering',
+        'name': 'Ada Lovelace',
+        'email': 'ada@computerscience.com',
+        'password': 'analyticalengine',
+        'user_type': 'professor',
       },
       {
-        'name': 'Klingon Linguistics',
-        'description': 'Study the language and culture of the Klingon Empire.',
-        'school': 'Linguistics',
+        'name': 'Alan Turing',
+        'email': 'turing@computerscience.com',
+        'password': 'enigma123',
+        'user_type': 'professor',
       },
       {
-        'name': 'Starship Command',
-        'description': 'Master the skills required to lead a starship crew.',
-        'school': 'Leadership',
+        'name': 'Grace Hopper',
+        'email': 'hopper@computerscience.com',
+        'password': 'cobolrocks',
+        'user_type': 'student',
+      },
+      {
+        'name': 'Katherine Johnson',
+        'email': 'johnson@nasa.com',
+        'password': 'mathematician',
+        'user_type': 'student',
       },
     ];
 
-    // Insert Courses
-    for (var course in courses) {
-      await db.insert('courses', course);
+    for (var user in users) {
+      batch.insert('users', user);
     }
 
-    // Dummy Ratings Data
-    List<Map<String, dynamic>> ratings = [
+    // Add dummy courses
+    List<Map<String, dynamic>> courses = [
       {
-        'workload': 4,
-        'difficulty': 5,
-        'overall_rating': 5,
-        'language': 'English',
-        'semester': 'summer',
-        'comment': 'Intense but highly rewarding.',
-        'course_id': 1,
+        'name': 'Introduction to Quantum Computing',
+        'description': 'Learn the basics of quantum mechanics and computing.',
+        'school': 'Physics and Computer Science',
       },
       {
-        'workload': 3,
-        'difficulty': 4,
-        'overall_rating': 4,
+        'name': 'Artificial Intelligence Ethics',
+        'description': 'Explore the ethical implications of AI development.',
+        'school': 'Philosophy',
+      },
+      {
+        'name': 'History of Space Exploration',
+        'description': 'An overview of humanity’s journey to the stars.',
+        'school': 'Astronomy',
+      },
+      {
+        'name': 'Advanced Data Structures',
+        'description': 'Study and implement complex data structures.',
+        'school': 'Computer Science',
+      },
+      {
+        'name': 'Astrobiology',
+        'description': 'Explore the possibilities of life beyond Earth.',
+        'school': 'Biology and Astronomy',
+      },
+    ];
+
+    for (var course in courses) {
+      batch.insert('courses', course);
+    }
+
+    // Add dummy ratings
+    List<Map<String, dynamic>> ratings = [
+      {
+        'workload': 6,
+        'difficulty': 7,
+        'overall_rating': 8,
         'language': 'English',
-        'semester': 'winter',
-        'comment': 'Fascinating insights into Klingon culture.',
-        'course_id': 2,
+        'semester': 'Winter',
+        'comment': 'Challenging but worth it!',
+        'course_id': 1,
       },
       {
         'workload': 5,
         'difficulty': 5,
-        'overall_rating': 5,
+        'overall_rating': 9,
         'language': 'English',
-        'semester': 'summer',
-        'comment': 'A must for aspiring captains.',
+        'semester': 'Summer',
+        'comment': 'Engaging and thought-provoking.',
+        'course_id': 2,
+      },
+      {
+        'workload': 7,
+        'difficulty': 8,
+        'overall_rating': 7,
+        'language': 'English',
+        'semester': 'Winter',
+        'comment': 'Fascinating content with tough assignments.',
         'course_id': 3,
+      },
+      {
+        'workload': 4,
+        'difficulty': 6,
+        'overall_rating': 8,
+        'language': 'Greek',
+        'semester': 'Summer',
+        'comment': 'Clear explanations and hands-on examples.',
+        'course_id': 4,
+      },
+      {
+        'workload': 8,
+        'difficulty': 9,
+        'overall_rating': 9,
+        'language': 'Greek',
+        'semester': 'Winter',
+        'comment': 'A very advanced and rewarding course!',
+        'course_id': 5,
       },
     ];
 
-    // Insert Ratings
     for (var rating in ratings) {
-      await db.insert('ratings', rating);
+      batch.insert('ratings', rating);
     }
 
-    // Dummy Events Data
+    // Add dummy events
     List<Map<String, dynamic>> events = [
       {
         'title': 'Federation Science Symposium',
@@ -179,78 +236,23 @@ class DatabaseHelper {
         'price': 20.0,
         'location': 'QonoS',
       },
+      {
+        'title': 'Starship Piloting Workshop',
+        'date': '2025-04-10',
+        'description': 'Hone your starship piloting skills with experts.',
+        'price': 100.0,
+        'location': 'Starfleet Academy',
+      },
     ];
 
-    // Insert Events
     for (var event in events) {
-      await db.insert('events', event);
+      batch.insert('events', event);
     }
 
-    // Dummy Users Data
-    List<Map<String, dynamic>> users = [
-      {
-        'name': 'James T. Kirk',
-        'email': 'kirk@starfleet.com',
-        'password': 'enterprise',
-        'user_type': 'professor',
-      },
-      {
-        'name': 'Spock',
-        'email': 'spock@starfleet.com',
-        'password': 'logic123',
-        'user_type': 'professor',
-      },
-      {
-        'name': 'Nyota Uhura',
-        'email': 'uhura@starfleet.com',
-        'password': 'linguist',
-        'user_type': 'student',
-      },
-    ];
+    // Execute the batch
+    await batch.commit(noResult: true);
+}*/
 
-    // Insert Users
-    for (var user in users) {
-      await db.insert('users', user);
-    }
-
-    // Dummy Trip Signups Data
-    List<Map<String, dynamic>> tripSignups = [
-      {'trip_id': 1, 'user_id': 3, 'signup_date': '2025-01-15'},
-      {'trip_id': 2, 'user_id': 3, 'signup_date': '2025-01-20'},
-    ];
-
-    // Insert Trip Signups
-    for (var signup in tripSignups) {
-      await db.insert('trip_signups', signup);
-    }
-  }
-
-  Future<int> insert(String table, Map<String, dynamic> data) async {
-    try {
-      final db = await database;
-      return await db.insert(table, data);
-    } catch (e) {
-      throw Exception("Error inserting into $table: $e");
-    }
-  }
-
-  Future<int> update(String table, int id, Map<String, dynamic> data) async {
-    try {
-      final db = await database;
-      return await db.update(table, data, where: 'id = ?', whereArgs: [id]);
-    } catch (e) {
-      throw Exception("Error updating $table: $e");
-    }
-  }
-
-  Future<int> delete(String table, int id) async {
-    try {
-      final db = await database;
-      return await db.delete(table, where: 'id = ?', whereArgs: [id]);
-    } catch (e) {
-      throw Exception("Error deleting from $table: $e");
-    }
-  }
 
   Future<List<Map<String, dynamic>>> getAll(String table) async {
     try {
@@ -258,25 +260,6 @@ class DatabaseHelper {
       return await db.query(table);
     } catch (e) {
       throw Exception("Error fetching all from $table: $e");
-    }
-  }
-
-  Future<Map<String, dynamic>?> getById(String table, int id) async {
-    try {
-      final db = await database;
-      final results = await db.query(table, where: 'id = ?', whereArgs: [id]);
-      return results.isNotEmpty ? results.first : null;
-    } catch (e) {
-      throw Exception("Error fetching by id from $table: $e");
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getTripSignups(int tripId) async {
-    try {
-      final db = await database;
-      return await db.query('trip_signups', where: 'trip_id = ?', whereArgs: [tripId]);
-    } catch (e) {
-      throw Exception("Error fetching signups for trip $tripId: $e");
     }
   }
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottomNavigationBarCustom.dart'; // Import the custom bottom navigation bar
+import '../db_helper.dart';
 import 'course_details_page.dart';
-import '../theme/theme_helper.dart';
+import '../widgets/bottomNavigationBarCustom.dart';
+import 'package:ntuadventure/theme/theme_helper.dart';
 
 class CoursePage extends StatefulWidget {
   @override
@@ -10,18 +11,13 @@ class CoursePage extends StatefulWidget {
 
 class _CoursePageState extends State<CoursePage> {
   final TextEditingController _searchController = TextEditingController();
-  final List<Map<String, String>> courses = [
-    {'title': 'Circuit Analysis', 'description': 'Electrical Engineering'},
-    {'title': 'Thermodynamics', 'description': 'Mechanical Engineering'},
-    {'title': 'Data Structures', 'description': 'Computer Science'},
-  ];
-
-  List<Map<String, String>> filteredCourses = [];
+  List<Map<String, dynamic>> _courses = [];
+  List<Map<String, dynamic>> _filteredCourses = [];
 
   @override
   void initState() {
     super.initState();
-    filteredCourses = courses; // Initialize with all courses
+    _fetchCourses();
     _searchController.addListener(_filterCourses);
   }
 
@@ -32,13 +28,22 @@ class _CoursePageState extends State<CoursePage> {
     super.dispose();
   }
 
+  Future<void> _fetchCourses() async {
+    final dbHelper = DatabaseHelper();
+    final courses = await dbHelper.getAll('courses');
+    setState(() {
+      _courses = courses;
+      _filteredCourses = courses; // Initially show all courses
+    });
+  }
+
   void _filterCourses() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      filteredCourses = courses
+      _filteredCourses = _courses
           .where((course) =>
-              course['title']!.toLowerCase().contains(query) ||
-              course['description']!.toLowerCase().contains(query))
+              course['name'].toLowerCase().contains(query) ||
+              course['school'].toLowerCase().contains(query))
           .toList();
     });
   }
@@ -49,10 +54,11 @@ class _CoursePageState extends State<CoursePage> {
       appBar: AppBar(
         title: Text(
           'Courses',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
         ),
-        backgroundColor: const Color(0xFF003366), // Dark Blue
+        backgroundColor: theme.colorScheme.primary, // Light blue
       ),
+
       body: Column(
         children: [
           // Search bar
@@ -69,61 +75,72 @@ class _CoursePageState extends State<CoursePage> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor:Color(0xFFCBD0E2), // Light Blue
+                fillColor: Color(0xFFCBD0E2), // Light Blue
               ),
             ),
           ),
           // Course List
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredCourses.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  color: const Color(0xFF003366), // Dark Blue
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 10,
-                    ),
-                    title: Text(
-                      filteredCourses[index]['title']!,
-                      style: const TextStyle(
-                        color: Colors.white, // White text
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+            child: _filteredCourses.isEmpty
+                ? Center(
+                    child: Text(
+                      'No courses found.',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 18,
                       ),
                     ),
-                    subtitle: Text(
-                      filteredCourses[index]['description']!,
-                      style: const TextStyle(
-                        color: Colors.white70, // Lighter white for subtitle
-                        fontSize: 14,
-                      ),
-                    ),
-                    trailing: SizedBox(
-                      width: 50,
-                      child: Image.asset(
-                        'assets/images/${filteredCourses[index]['title']!.toLowerCase().replaceAll(' ', '_')}.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              CourseDetailsPage(course: filteredCourses[index]),
+                  )
+                : ListView.builder(
+                    itemCount: _filteredCourses.length,
+                    itemBuilder: (context, index) {
+                      final course = _filteredCourses[index];
+                      return Card(
+                        color: const Color(0xFF003366), // Dark Blue
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 10,
+                          ),
+                          title: Text(
+                            course['name'],
+                            style: const TextStyle(
+                              color: Colors.white, // White text
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Text(
+                            course['school'],
+                            style: const TextStyle(
+                              color: Colors.white70, // Lighter white for subtitle
+                              fontSize: 14,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CourseDetailsPage(
+                                  courseId: index + 1, // Replace with actual course ID from the database
+                                ),
+                              ),
+                            );
+                          }
+
                         ),
                       );
                     },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
@@ -131,5 +148,3 @@ class _CoursePageState extends State<CoursePage> {
     );
   }
 }
-
-
