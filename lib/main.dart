@@ -35,7 +35,7 @@ Future<void> printDatabaseContents() async {
   final db = await dbHelper.database;
 
   // List of tables to query
-  final tables = ['users', 'courses', 'ratings', 'events', 'trip_signups'];
+  final tables = ['users', 'courses', 'ratings', 'events', 'user_courses', 'trip_signups', ];
 
   print('\n======= DATABASE CONTENT =======');
   for (String table in tables) {

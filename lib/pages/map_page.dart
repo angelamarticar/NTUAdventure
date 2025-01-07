@@ -4,8 +4,10 @@ import '../widgets/bottomNavigationBarCustom.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:custom_info_window/custom_info_window.dart';
-import '../theme/theme_helper.dart';
 import '../pages/camera.dart';
+import '../db_helper.dart';
+import 'dart:io';
+import 'dart:math';
 
 final Logger logger = Logger('MarkersLogger');
 
@@ -208,6 +210,122 @@ Future<Set<Marker>> loadMarkersFromFile(String filePath, BitmapDescriptor catego
   }
 }
 
+Widget CustomizedInfoWindowPhotos(String placeName, String info, BuildContext context) {
+
+  return Container(
+      width: 150,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black,
+            blurRadius: 6.0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const SizedBox(height: 8.0),
+          Text(
+            placeName,
+            style: const TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            info,
+            style: const TextStyle(
+              fontSize: 14.0,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          ElevatedButton.icon(
+            label: const Text('Share a photo!'),
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all<EdgeInsets>(
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              ),
+              foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CameraScreen(placeName: placeName),
+                ),
+              );
+            },
+            icon: const Icon(Icons.photo_camera),
+          ),
+          const SizedBox(height: 8.0),
+          // Usa el método buildPhotoList
+          buildPhotoList(placeName),
+        ],
+      ),
+    );
+}
+
+
+Widget buildPhotoList(String placeName) {
+  return FutureBuilder<List<Map<String, dynamic>>>(
+    future: DatabaseHelper().getAll('photos'),
+    builder: (context, snapshot) {
+      logger.info('------------------------------------Downloading photos from the database----------------------------------');
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Center(child: Text('Error: ${snapshot.error}'));
+      } else if (snapshot.hasData) {
+        
+        final photos = snapshot.data!.where((photo) => photo['placeName'] == placeName).toList();
+
+        if (photos.isEmpty) {
+          logger.info('There are no photos saved to the database----------------------------------');
+          return const Text(
+            'No photos available.',
+            style: TextStyle(color: Colors.grey),
+          );
+        }
+
+        final random = Random();
+        photos.shuffle(random);
+        final randomPhotos = photos.take(3).toList();
+
+        return SizedBox(
+          height: 100.0,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: randomPhotos.length,
+            itemBuilder: (context, index) {
+              final photoPath = randomPhotos[index]['path'];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Image.file(
+                  File(photoPath),
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+          ),
+        );
+      }
+      return const Text('No photos available.', style: TextStyle(color: Colors.grey));
+    },
+  );
+}
+
+/* 
 Widget CustomizedInfoWindowPhotos(String placeName, String info, BuildContext context){
   return Container(
     width: 150, // Ajusta el ancho del widget
@@ -271,12 +389,12 @@ Widget CustomizedInfoWindowPhotos(String placeName, String info, BuildContext co
               MaterialPageRoute(builder: (context) => CameraScreen()));
               },
           icon: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimaryContainer,),
-        )
+        ),
       ],
     ),
   );
 }
-
+*/
 Widget CustomizedInfoWindow(String placeName, String info, BuildContext context, String imageLink){
   return Container(
     width: 150, // Ajusta el ancho del widget

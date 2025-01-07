@@ -4,6 +4,12 @@ import 'package:ntuadventure/widgets/bottomNavigationBarCustom.dart';
 import '../theme/theme_helper.dart';
 import 'event_page.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:logging/logging.dart';
+import '../db_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
+final Logger logger = Logger('CalendarPageLogger');
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -14,165 +20,214 @@ class CalendarPage extends StatefulWidget {
 
 class _calendarpage extends State<CalendarPage> {
   int _selectedIndex = 3;
+  List<Map<String, dynamic>> _userEvents = [];
+  List<Map<String, dynamic>> _nextEvents = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserEvents();
+  }
+
+    Future<void> _fetchUserEvents() async {
+    final db = await DatabaseHelper().database;
+
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('user_id') ?? 2;
+
+    logger.info('Obteniendo eventos para el usuario: $userId');
+
+    try {
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final resultEvents = await db.rawQuery('''
+        SELECT events.title, events.date, events.description, events.price, events.location, events.image_path
+        FROM trip_signups 
+        JOIN events ON trip_signups.trip_id = events.id
+        WHERE trip_signups.user_id = ? AND events.date > ?
+        ORDER BY events.date ASC
+      ''', [userId, today]);
+
+      logger.info('Eventos futuros obtenidos: ${resultEvents.length}');
+
+      setState(() {
+        _userEvents = resultEvents;
+      });
+    } catch (e) {
+      logger.severe('Error al obtener eventos: $e');
+    }
+  }
+
+    Future<void> _fetchNextEvents() async {
+    final db = await DatabaseHelper().database;
+
+    try {
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final nextMonth = DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 30)));
+      final resultNextEvents = await db.rawQuery('''
+        SELECT events.title, events.date, events.description, events.price, events.location, events.image_path
+        FROM events
+        WHERE events.date > ? AND events.date <= ?
+        ORDER BY events.date ASC
+      ''', [today, nextMonth]);
+
+      logger.info('Próximos eventos obtenidos: ${resultNextEvents.length}');
+
+      setState(() {
+        _nextEvents = resultNextEvents;
+      });
+    } catch (e) {
+      logger.severe('Error al obtener próximos eventos: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     DateTime selectedDay = DateTime.now();
     String formattedDate = DateFormat('EEE, MMM d').format(selectedDay);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.onPrimaryContainer,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              top: 20.0, left: 20.0, right: 20.0, bottom: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 20.0),
-              // Search Bar
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search, color: Colors.grey),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          border: InputBorder.none,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.onPrimaryContainer,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(
+                top: 20.0, left: 20.0, right: 20.0, bottom: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 24.0),
+                // Calendar
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Your event calendar",
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-              // Calendar
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Your event calendar",
-                      style: TextStyle(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                      SizedBox(height: 8),
+                      Text(
+                        formattedDate,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(
+                        height: 350.0,
+                        width: 500.0,
+                        child: CustomTableCalendar(selectedDay: selectedDay),
                       ),
-                    ),
-                    SizedBox(
-                      height: 350.0,
-                      width: 500.0,
-                      child: CustomTableCalendar(selectedDay: selectedDay),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
-              // Tabs
-              DefaultTabController(
-                length: 2,
-                child: Column(
-                  children: [
-                    TabBar(
-                      indicatorColor: Color(0xFF1A237E),
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      tabs: [
-                        Tab(text: "My events"),
-                        Tab(text: "Next events"),
-                      ],
-                    ),
-                    Container(
-                      height: 140.0,
-                      child: TabBarView(
-                        children: [
-                          // My events tab
-                          ListView(
-                            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EventDetailsPage(
-                                        eventTitle: "Nafplio trip",
-                                        eventDetails: "An exciting trip to Nafplio with sightseeing and cultural activities.",
-                                        eventDate: "10/11/2024",
-                                        meetingPoint: "Metaxourgeio Metro Station",
-                                        time: "Sunday 10/11 at 9:00 AM",
-                                        price: "15€", // Dummy data
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: EventCard(
-                                  title: "Nafplio trip",
-                                  date: "10/11/2024",
-                                  imageUrl: "https://via.placeholder.com/150",
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EventDetailsPage(
-                                        eventTitle: "Music Festival",
-                                        eventDetails: "Enjoy live music and performances.",
-                                        eventDate: "12/11/2024",
-                                        meetingPoint: "Central Park Stage",
-                                        time: "Saturday 12/11 at 6:00 PM",
-                                        price: "Free", // Dummy data
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: EventCard(
-                                  title: "Music Festival",
-                                  date: "12/11/2024",
-                                  imageUrl: "https://via.placeholder.com/150",
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Next events tab
-                          Center(
-                            child: Text("No upcoming events"),
-                          ),
+                SizedBox(height: 16),
+                // Tabs
+                DefaultTabController(
+                  length: 2,
+                  child: Column(
+                    children: [
+                      TabBar(
+                        indicatorColor: Color(0xFF1A237E),
+                        labelColor: Colors.black,
+                        unselectedLabelColor: Colors.grey,
+                        tabs: [
+                          Tab(text: "My events"),
+                          Tab(text: "Next events"),
                         ],
                       ),
-                    ),
-                  ],
+                      Container(
+                        height: 200.0,
+                        child: TabBarView(
+                          children: [
+                            // My events tab
+                            ListView(
+                              children: _userEvents.map((event) {
+                                return InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EventDetailsPage(
+                                          eventTitle: event['title'],
+                                          eventDetails: event['description'] ?? "Details not provided",
+                                          eventDate: event['date'],
+                                          meetingPoint: event['location'] ?? "Not specified",
+                                          time: "Not specified", // Placeholder
+                                          price: event['price'] != null ? "${event['price']}€" : "Free",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: EventCard(
+                                    title: event['title'],
+                                    date: event['date'],
+                                    imageUrl: event['image_path'] ?? 'https://via.placeholder.com/150',   
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+      
+                            // Next events tab
+                            // Next events tab
+                            ListView(
+                              children: _nextEvents.isNotEmpty
+                                  ? _nextEvents.map((event) {
+                                      return InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => EventDetailsPage(
+                                                eventTitle: event['title'],
+                                                eventDetails: event['description'] ?? "Details not provided",
+                                                eventDate: event['date'],
+                                                meetingPoint: event['location'] ?? "Not specified",
+                                                time: "Not specified", // Placeholder
+                                                price: event['price'] != null ? "${event['price']}€" : "Free",
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: EventCard(
+                                          title: event['title'],
+                                          date: event['date'],
+                                          imageUrl: event['image_path'] ?? 'https://via.placeholder.com/150',
+                                        ),
+                                      );
+                                    }).toList()
+                                  : [
+                                      SizedBox(height: 12.0,),
+                                      Center(
+                                        child: Text(
+                                          "No upcoming events",
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ),
+                                    ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: BottomNavigationBarCustom(_selectedIndex, context),
       ),
-      bottomNavigationBar: BottomNavigationBarCustom(_selectedIndex, context),
     );
   }
 }

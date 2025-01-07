@@ -38,7 +38,7 @@ class DatabaseHelper {
   }
 
   Future<void> _dropAllTables(Database db) async {
-    final tables = ['users', 'courses', 'ratings', 'events', 'trip_signups'];
+    final tables = ['users', 'courses', 'ratings', 'events', 'user_courses', 'trip_signups'];
     for (String table in tables) {
       await db.execute('DROP TABLE IF EXISTS $table');
     }
@@ -112,6 +112,25 @@ class DatabaseHelper {
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       )
     ''');
+
+      await db.execute('''
+      CREATE TABLE user_courses(
+        user_id INTEGER,
+        course_id INTEGER,
+        signup_date TEXT NOT NULL,
+        PRIMARY KEY (user_id, course_id),
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (course_id) REFERENCES courses (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute(
+          '''CREATE TABLE IF NOT EXISTS 
+          photos(
+          id INTEGER PRIMARY KEY, 
+          placeName TEXT NOT NULL,
+          path TEXT)'''
+    );
   }
 
   Future<int> insert(String table, Map<String, dynamic> values) async {
@@ -164,6 +183,16 @@ class DatabaseHelper {
     await db.insert('courses', {'name': 'Starship Navigation', 'description': 'Advanced techniques in starship piloting.', 'school': 'Astronomy', 'language': 'English', 'semester': 'Winter'});
     await db.insert('courses', {'name': 'Holodeck Programming', 'description': 'Learn to create and maintain holodeck programs.', 'school': 'Computer Science', 'language': 'English', 'semester': 'Spring'});
 
+    // Add dummy user-course relationships
+    await db.insert('user_courses', {'user_id': 1, 'course_id': 1, 'signup_date': '2025-01-01'});
+    await db.insert('user_courses', {'user_id': 2, 'course_id': 2, 'signup_date': '2025-02-01'});
+    await db.insert('user_courses', {'user_id': 2, 'course_id': 3, 'signup_date': '2025-03-01'});
+    await db.insert('user_courses', {'user_id': 2, 'course_id': 4, 'signup_date': '2025-04-01'});
+    await db.insert('user_courses', {'user_id': 3, 'course_id': 3, 'signup_date': '2025-03-01'});
+    await db.insert('user_courses', {'user_id': 4, 'course_id': 4, 'signup_date': '2025-04-01'});
+    await db.insert('user_courses', {'user_id': 5, 'course_id': 5, 'signup_date': '2025-05-01'});
+    await db.insert('user_courses', {'user_id': 6, 'course_id': 6, 'signup_date': '2025-06-01'});
+
     // Add Star Trek-themed ratings
     await db.insert('ratings', {'workload': 8, 'difficulty': 7, 'overall_rating': 9, 'comment': 'Warp cores are fascinating!', 'course_id': 1});
     await db.insert('ratings', {'workload': 6, 'difficulty': 9, 'overall_rating': 8, 'comment': 'Temporal mechanics are complex but intriguing.', 'course_id': 2});
@@ -173,12 +202,13 @@ class DatabaseHelper {
     await db.insert('ratings', {'workload': 4, 'difficulty': 6, 'overall_rating': 9, 'comment': 'Holodeck programming was creative!', 'course_id': 6});
 
     // Add Star Trek-themed events
-    await db.insert('events', {'title': 'Klingon Bat’leth Tournament', 'date': '2025-06-01', 'description': 'Compete in a Bat’leth combat tournament.', 'price': 30.0, 'location': 'Qo’noS'});
-    await db.insert('events', {'title': 'Federation Science Symposium', 'date': '2025-07-15', 'description': 'Explore the latest Federation science.', 'price': 50.0, 'location': 'Starbase 1'});
-    await db.insert('events', {'title': 'Delta Quadrant Exploration', 'date': '2025-08-10', 'description': 'A guided tour of the Delta Quadrant.', 'price': 100.0, 'location': 'Voyager'});
-    await db.insert('events', {'title': 'Holodeck Creative Workshop', 'date': '2025-09-05', 'description': 'Create your own holodeck adventures.', 'price': 20.0, 'location': 'Enterprise-D'});
-    await db.insert('events', {'title': 'Vulcan Logic Retreat', 'date': '2025-10-12', 'description': 'Immerse yourself in Vulcan philosophy.', 'price': 15.0, 'location': 'Vulcan'});
-    await db.insert('events', {'title': 'Starfleet Graduation Ceremony', 'date': '2025-11-20', 'description': 'Celebrate the newest Starfleet cadets.', 'price': 0.0, 'location': 'Starfleet Academy'});
+    await db.insert('events', {'title': 'Klingon Batleth Tournament', 'date': '2025-06-01', 'description': 'Compete in a Bat’leth combat tournament.', 'price': 30.0, 'location': 'Qo’noS', 'image_path': 'https://m.media-amazon.com/images/S/pv-target-images/42425d39b520914252319a1d94c3902c6a9ab269351365e9afde23e51a904110.jpg'});
+    await db.insert('events', {'title': 'Federation Science Symposium', 'date': '2025-07-15', 'description': 'Explore the latest Federation science.', 'price': 50.0, 'location': 'Starbase 1', 'image_path': 'https://cdn5.idcgames.com/storage/image/1496/game_home_bg_section_2/default.jpg'});
+    await db.insert('events', {'title': 'Delta Quadrant Exploration', 'date': '2025-08-10', 'description': 'A guided tour of the Delta Quadrant.', 'price': 100.0, 'location': 'Voyager', 'image_path': 'https://cdn.britannica.com/82/162182-050-BB21D3E1/Leonard-Nimoy-Star-Trek-William-Shatner.jpg'});
+    await db.insert('events', {'title': 'Holodeck Creative Workshop', 'date': '2025-09-05', 'description': 'Create your own holodeck adventures.', 'price': 20.0, 'location': 'Enterprise-D', 'image_path': 'https://www.zdnet.com/a/img/resize/36a96460833c9b22dc81189aad0f44eb8f0c77fa/2024/11/22/5e46b6fb-4074-40e5-aba5-402483207025/spock6gettyimages-464967684.jpg?auto=webp&width=1280'});
+    await db.insert('events', {'title': 'Vulcan Logic Retreat', 'date': '2025-10-12', 'description': 'Immerse yourself in Vulcan philosophy.', 'price': 15.0, 'location': 'Vulcan', 'image_path': 'https://img2.rtve.es/i/?w=1600&i=1479126615672.jpg'});
+    await db.insert('events', {'title': 'Starfleet Graduation Ceremony', 'date': '2025-11-20', 'description': 'Celebrate the newest Starfleet cadets.', 'price': 0.0, 'location': 'Starfleet Academy', 'image_path': 'https://captainsblog1701.files.wordpress.com/2011/07/the_next_generation_main_cast_season_11.jpg?w=640'});
+
 
     // Add Star Trek-themed trip signups
     await db.insert('trip_signups', {'trip_id': 1, 'user_id': 1, 'signup_date': '2025-05-20'});

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ntuadventure/pages/calendar_page.dart';
 import '../theme/app_decoration.dart';
-import '../pages/home_page.dart';
+import '../db_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 
 class LoginPage extends StatefulWidget{
@@ -36,6 +38,21 @@ class _LoginPageState extends State<LoginPage> {
     _usernameFocusNode.dispose();
     super.dispose();
   }
+
+  Future<int?> _validateCredentials(String username, String password) async {
+    final db = await DatabaseHelper().database;
+    final result = await db.query(
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+
+    if (result.isNotEmpty) {
+      return result.first['id'] as int; // Return the user_id
+    }
+    return null; // No match found
+  }
+
 
   @override
   Widget build(BuildContext context){
@@ -97,12 +114,18 @@ class _LoginPageState extends State<LoginPage> {
                                 _textFieldPassword(_passwordController),
                                 SizedBox(height: 30,),
                                 ElevatedButton(
-                                  onPressed: (){
+                                  onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
+
                                       String username = _usernameController.text;
                                       String password = _passwordController.text;
-                                      if ((username == "thanos" && password == "loveAthens")
-                                        ||(username=="giorgio"&& password == "loveAthens")) {
+
+                                      int? userId = await _validateCredentials(username, password);
+
+                                      if (userId != null) {
+                                        // Save user_id to SharedPreferences
+                                        final prefs = await SharedPreferences.getInstance();
+                                        await prefs.setInt('user_id', userId);
                                         Navigator.push(
                                         context,
                                         MaterialPageRoute(builder: (context) => CalendarPage()),

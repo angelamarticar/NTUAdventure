@@ -4,12 +4,15 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import '../db_helper.dart';
 
 final Logger logger = Logger('CameraScreenLogger');
 
 /// Camera example home widget.
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  final String placeName;
+
+  const CameraScreen({Key? key, required this.placeName}) : super(key: key);
 
   @override
   State<CameraScreen> createState() {
@@ -140,8 +143,15 @@ with WidgetsBindingObserver {
         setState(() {
           imageFile = file;
         });
+        
+        await DatabaseHelper().insert('photos', {
+          'path': file.path,
+          'placeName': widget.placeName,
+        });
+        logger.info(DatabaseHelper().getAll('photos'));
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Picture saved to ${file.path}')),
+          SnackBar(content: Text('Picture saved for ${widget.placeName} to ${file.path}')),
         );
       } catch (e) {
         debugPrint('Error taking picture: $e');
