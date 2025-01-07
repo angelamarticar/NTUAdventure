@@ -12,6 +12,30 @@ class CourseDetailsPage extends StatefulWidget {
   @override
   State<CourseDetailsPage> createState() => _CourseDetailsPageState();
 }
+class RatingCard extends StatelessWidget {
+  final String label;
+  final double? value;
+
+  RatingCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5),
+        Text(
+          value != null ? '${value!.toStringAsFixed(1)}/10' : 'N/A',
+          style: TextStyle(fontSize: 16, color: Colors.blueAccent),
+        ),
+      ],
+    );
+  }
+}
+
 
 class _CourseDetailsPageState extends State<CourseDetailsPage> {
   Map<String, dynamic>? courseDetails;
@@ -24,18 +48,49 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
   Future<void> _fetchCourseDetails() async {
     final dbHelper = DatabaseHelper();
-    final result = await dbHelper.getAll('courses');
-    final course = result.firstWhere(
-      (element) => element['id'] == widget.courseId,
-      orElse: () => {}, // Return an empty map instead of null
+    final db = await dbHelper.database;
+
+    // Fetch course details
+    final course = await db.query(
+      'courses',
+      where: 'id = ?',
+      whereArgs: [widget.courseId],
     );
 
-    if (mounted) {
+    // Fetch ratings and comments for the course
+    final ratings = await db.query(
+      'ratings',
+      where: 'course_id = ?',
+      whereArgs: [widget.courseId],
+    );
+
+    if (course.isNotEmpty && mounted) {
+      double workloadAvg = 0;
+      double difficultyAvg = 0;
+      double overallAvg = 0;
+
+      List<Map<String, dynamic>> comments = [];
+
+      if (ratings.isNotEmpty) {
+        workloadAvg = ratings.map((e) => e['workload'] as int).reduce((a, b) => a + b) / ratings.length;
+        difficultyAvg = ratings.map((e) => e['difficulty'] as int).reduce((a, b) => a + b) / ratings.length;
+        overallAvg = ratings.map((e) => e['overall_rating'] as int).reduce((a, b) => a + b) / ratings.length;
+        comments = ratings.map((e) => {'comment': e['comment']}).toList();
+      }
+
       setState(() {
-        courseDetails = course.isNotEmpty ? course : null;
+        courseDetails = {
+          ...course.first,
+          'workloadAvg': workloadAvg,
+          'difficultyAvg': difficultyAvg,
+          'overallAvg': overallAvg,
+          'comments': comments,
+        };
       });
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +100,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           courseDetails?['name'] ?? 'Course Details',
           style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
         ),
-        backgroundColor: theme.colorScheme.primary, // Light blue
+        backgroundColor: theme.colorScheme.primary,
       ),
       body: courseDetails == null
           ? Center(
@@ -59,41 +114,71 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Course Title
+                  // Course Title and Description
                   Text(
                     courseDetails!['name'] ?? 'Unknown Course',
-                    style: TextThemes.textTheme(theme.colorScheme).titleMedium,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
-                  // School Name
                   Text(
                     courseDetails!['school'] ?? 'Unknown School',
-                    style: TextThemes.textTheme(theme.colorScheme).titleSmall,
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    courseDetails!['description'] ?? 'No description available.',
+                    style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                   SizedBox(height: 20),
-                  // Professor Placeholder
+
+                  // Semester and Language
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: AssetImage('assets/images/professor.png'), // Replace with your image
-                      ),
-                      SizedBox(width: 16),
                       Text(
-                        'Prof. John Doe', // Update dynamically if professor data is available
-                        style: TextThemes.textTheme(theme.colorScheme)
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        'Semester: ${courseDetails!['semester'] ?? 'N/A'}',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                      Text(
+                        'Language: ${courseDetails!['language'] ?? 'N/A'}',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
-                  // Course Description
+
+                  // Ratings
                   Text(
-                    courseDetails!['description'] ?? 'No description available.',
-                    style: TextThemes.textTheme(theme.colorScheme).bodyMedium,
+                    'Course Ratings (out of 10):',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      RatingCard(label: 'Workload', value: courseDetails!['workloadAvg']),
+                      RatingCard(label: 'Difficulty', value: courseDetails!['difficultyAvg']),
+                      RatingCard(label: 'Overall', value: courseDetails!['overallAvg']),
+                    ],
                   ),
                   SizedBox(height: 20),
+
+                  // Comments
+                  Text(
+                    'Student Comments:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  ...?courseDetails!['comments']?.map((comment) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        '- ${comment['comment'] ?? 'No comment provided'}',
+                        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                      ),
+                    );
+                  }),
+                  SizedBox(height: 20),
+
                   // Rate Course Button
                   Center(
                     child: ElevatedButton(
@@ -105,7 +190,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CourseRatingPage(courseTitle: courseDetails!['name']),
+                            builder: (context) => CourseRatingPage(
+                              courseTitle: courseDetails!['name'],
+                              courseId: widget.courseId,
+                            ),
                           ),
                         );
                       },
