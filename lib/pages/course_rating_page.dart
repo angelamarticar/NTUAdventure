@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db_helper.dart';
 import 'package:ntuadventure/theme/theme_helper.dart';
+
 class CourseRatingPage extends StatefulWidget {
   final String courseTitle;
   final int courseId;
@@ -16,6 +17,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
   double difficultyRating = 5.0;
   double overallRating = 5.0;
   final TextEditingController commentController = TextEditingController();
+  final FocusNode commentFocusNode = FocusNode(); // Moved FocusNode to class level
 
   Future<void> _submitRating() async {
     final dbHelper = DatabaseHelper();
@@ -39,6 +41,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
   @override
   void dispose() {
     commentController.dispose();
+    commentFocusNode.dispose(); // Dispose of the focus node
     super.dispose();
   }
 
@@ -49,7 +52,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
         backgroundColor: theme.colorScheme.primary, // Match the color with BottomNavigationBar
         title: Text(
           widget.courseTitle,
-          style: TextStyle(color: theme.colorScheme.onPrimary),
+          style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: theme.colorScheme.onPrimary),
@@ -66,7 +69,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
             // Rating Sections
             RatingSection(
               label: 'Workload',
-              description: 'Rate the workload of the course',
+              description: 'Workload',
               value: workloadRating,
               onChanged: (value) {
                 setState(() {
@@ -76,7 +79,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
             ),
             RatingSection(
               label: 'Difficulty',
-              description: 'Rate the difficulty of the course',
+              description: 'Difficulty',
               value: difficultyRating,
               onChanged: (value) {
                 setState(() {
@@ -86,7 +89,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
             ),
             RatingSection(
               label: 'Overall Rating',
-              description: 'Rate your overall experience',
+              description: 'Overall Rating',
               value: overallRating,
               onChanged: (value) {
                 setState(() {
@@ -99,6 +102,7 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
             // Write a Comment
             TextField(
               controller: commentController,
+              focusNode: commentFocusNode, // Attach the focus node
               decoration: InputDecoration(
                 hintText: 'Write a comment...',
                 hintStyle: TextStyle(color: Colors.black),
@@ -106,6 +110,9 @@ class _CourseRatingPageState extends State<CourseRatingPage> {
                 filled: true,
                 fillColor: Color(0xFFCBD0E2).withOpacity(0.4), // Light blue
               ),
+              onTap: () {
+                commentFocusNode.requestFocus(); // Ensure the keyboard pops up on tap
+              },
               maxLines: 3,
             ),
             SizedBox(height: 30),

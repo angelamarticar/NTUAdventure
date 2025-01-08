@@ -175,13 +175,60 @@ class DatabaseHelper {
     await db.insert('users', {'name': 'Seven of Nine', 'email': 'seven@borg.com', 'password': 'annika', 'user_type': 'erasmusStudent'});
     await db.insert('users', {'name': 'Kathryn Janeway', 'email': 'janeway@voyager.com', 'password': 'deltaQuadrant', 'user_type': 'professor'});
 
-    // Add Star Trek-themed courses
-    await db.insert('courses', {'name': 'Warp Core Engineering', 'description': 'Learn to manage starship warp cores.', 'school': 'Engineering', 'language': 'English', 'semester': 'Winter'});
-    await db.insert('courses', {'name': 'Temporal Mechanics', 'description': 'The study of time travel and temporal anomalies.', 'school': 'Physics', 'language': 'Vulcan', 'semester': 'Spring'});
-    await db.insert('courses', {'name': 'Federation Diplomacy', 'description': 'Understand interplanetary relations and diplomacy.', 'school': 'Political Science', 'language': 'English', 'semester': 'Summer'});
-    await db.insert('courses', {'name': 'Borg Technology', 'description': 'Analysis of Borg nanoprobes and adaptation systems.', 'school': 'Cybernetics', 'language': 'English', 'semester': 'Fall'});
-    await db.insert('courses', {'name': 'Starship Navigation', 'description': 'Advanced techniques in starship piloting.', 'school': 'Astronomy', 'language': 'English', 'semester': 'Winter'});
-    await db.insert('courses', {'name': 'Holodeck Programming', 'description': 'Learn to create and maintain holodeck programs.', 'school': 'Computer Science', 'language': 'English', 'semester': 'Spring'});
+    await db.insert('courses', {
+      'name': 'Warp Core Engineering',
+      'description': 'Master the intricate art of maintaining and troubleshooting starship warp cores, ensuring efficient and safe interstellar travel.',
+      'school': 'Engineering',
+      'language': 'English',
+      'semester': 'Winter',
+      'image_path': 'assets/images/course1.jpg',
+      'professor_id': 1
+    });
+    await db.insert('courses', {
+      'name': 'Temporal Mechanics',
+      'description': 'Explore the paradoxes of time travel, study temporal anomalies, and understand their implications for the universe.',
+      'school': 'Physics',
+      'language': 'Vulcan',
+      'semester': 'Spring',
+      'image_path': 'assets/images/course2.jpg',
+      'professor_id': 2
+    });
+    await db.insert('courses', {
+      'name': 'Federation Diplomacy',
+      'description': 'Gain skills in negotiating interplanetary treaties, fostering peace, and handling cultural sensitivities.',
+      'school': 'Political Science',
+      'language': 'English',
+      'semester': 'Summer',
+      'image_path': 'assets/images/course3.jpg',
+      'professor_id': 3
+    });
+    await db.insert('courses', {
+      'name': 'Borg Technology',
+      'description': 'Delve into the adaptive capabilities of Borg nanoprobes and learn how to integrate cybernetics effectively.',
+      'school': 'Cybernetics',
+      'language': 'English',
+      'semester': 'Fall',
+      'image_path': 'assets/images/course4.jpg',
+      'professor_id': 5
+    });
+    await db.insert('courses', {
+      'name': 'Starship Navigation',
+      'description': 'Enhance your knowledge of stellar cartography and advanced piloting techniques for exploring unknown territories.',
+      'school': 'Astronomy',
+      'language': 'English',
+      'semester': 'Winter',
+      'image_path': 'assets/images/course5.jpg',
+      'professor_id': 6
+    });
+    await db.insert('courses', {
+      'name': 'Holodeck Programming',
+      'description': 'Learn to design, debug, and optimize immersive simulations for training and leisure on starships.',
+      'school': 'Computer Science',
+      'language': 'English',
+      'semester': 'Spring',
+      'image_path': 'assets/images/course6.jpg',
+      'professor_id': 1
+    });
 
     // Add dummy user-course relationships
     await db.insert('user_courses', {'user_id': 1, 'course_id': 1, 'signup_date': '2025-01-01'});

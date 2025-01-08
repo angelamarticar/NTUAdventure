@@ -12,30 +12,6 @@ class CourseDetailsPage extends StatefulWidget {
   @override
   State<CourseDetailsPage> createState() => _CourseDetailsPageState();
 }
-class RatingCard extends StatelessWidget {
-  final String label;
-  final double? value;
-
-  RatingCard({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 5),
-        Text(
-          value != null ? '${value!.toStringAsFixed(1)}/10' : 'N/A',
-          style: TextStyle(fontSize: 16, color: Colors.blueAccent),
-        ),
-      ],
-    );
-  }
-}
-
 
 class _CourseDetailsPageState extends State<CourseDetailsPage> {
   Map<String, dynamic>? courseDetails;
@@ -50,12 +26,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     final dbHelper = DatabaseHelper();
     final db = await dbHelper.database;
 
-    // Fetch course details
-    final course = await db.query(
-      'courses',
-      where: 'id = ?',
-      whereArgs: [widget.courseId],
-    );
+    // Fetch course details along with professor name
+    final courseQuery = '''
+      SELECT c.*, u.name as professor_name
+      FROM courses c
+      LEFT JOIN users u ON c.professor_id = u.id
+      WHERE c.id = ?
+    ''';
+    final course = await db.rawQuery(courseQuery, [widget.courseId]);
 
     // Fetch ratings and comments for the course
     final ratings = await db.query(
@@ -90,10 +68,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    final String placeholderImage = 'assets/images/NTUAlib.jpg';
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -114,43 +92,67 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Course Title and Description
-                  Text(
-                    courseDetails!['name'] ?? 'Unknown Course',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  // Course Image
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        courseDetails!['image_path'] ?? placeholderImage,
+                        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                          return Image.asset(
+                            placeholderImage, // Path to your placeholder image
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    courseDetails!['school'] ?? 'Unknown School',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    courseDetails!['description'] ?? 'No description available.',
-                    style: TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                  SizedBox(height: 20),
+                  Divider(color: Colors.blue[900], thickness: 2, height: 32),
 
-                  // Semester and Language
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Description
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Semester: ${courseDetails!['semester'] ?? 'N/A'}',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                        'Description:',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
+                      SizedBox(height: 8),
                       Text(
-                        'Language: ${courseDetails!['language'] ?? 'N/A'}',
+                        courseDetails!['description'] ?? 'No description available.',
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  Divider(color: Colors.blue[900], thickness: 2, height: 32),
+
+                  // Course Info
+                  Text(
+                    'School: ${courseDetails!['school'] ?? 'Unknown School'}',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Professor: ${courseDetails!['professor_name'] ?? 'TBA'}',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Language: ${courseDetails!['language'] ?? 'Not specified'}',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Semester: ${courseDetails!['semester'] ?? 'Not specified'}',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                  ),
+                  Divider(color: Colors.blue[900], thickness: 2, height: 32),
 
                   // Ratings
                   Text(
-                    'Course Ratings (out of 10):',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    'Course Ratings:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   SizedBox(height: 10),
                   Row(
@@ -161,24 +163,31 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       RatingCard(label: 'Overall', value: courseDetails!['overallAvg']),
                     ],
                   ),
-                  SizedBox(height: 20),
 
                   // Comments
                   Text(
                     'Student Comments:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 17, color: Colors.grey),
                   ),
-                  ...?courseDetails!['comments']?.map((comment) {
-                    return Padding(
+                  SizedBox(height: 10),
+                  if (courseDetails!['comments'] != null && (courseDetails!['comments'] as List).isNotEmpty)
+                    ...courseDetails!['comments']!.map<Widget>((comment) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          '"${comment['comment'] ?? 'No comment provided'}"',
+                          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.blueAccent),
+                        ),
+                      );
+                    }).toList()
+                  else
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        '- ${comment['comment'] ?? 'No comment provided'}',
-                        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                        'No comments yet.',
+                        style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.grey),
                       ),
-                    );
-                  }),
-                  SizedBox(height: 20),
-
+                    ),
                   // Rate Course Button
                   Center(
                     child: ElevatedButton(
@@ -207,6 +216,30 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               ),
             ),
       bottomNavigationBar: BottomNavigationBarCustom(1, context),
+    );
+  }
+}
+
+class RatingCard extends StatelessWidget {
+  final String label;
+  final double? value;
+
+  RatingCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 17, color: Colors.grey),
+        ),
+        SizedBox(height: 5),
+        Text(
+          value != null ? '${value!.toStringAsFixed(1)}/10' : 'N/A',
+          style: TextStyle(fontSize: 16, color: Colors.blueAccent),
+        ),
+      ],
     );
   }
 }
