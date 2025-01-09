@@ -188,6 +188,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                         style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.grey),
                       ),
                     ),
+                  Divider(color: Colors.blue[900], thickness: 2, height: 32),
+
                   // Rate Course Button
                   Center(
                     child: ElevatedButton(

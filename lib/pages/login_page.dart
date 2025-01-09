@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ntuadventure/pages/calendar_page.dart';
+import 'package:ntuadventure/pages/home_page.dart';
 import '../theme/app_decoration.dart';
 import '../db_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,11 +128,11 @@ class _LoginPageState extends State<LoginPage> {
                                         await prefs.setInt('user_id', userId);
                                         Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => CalendarPage()),
+                                        MaterialPageRoute(builder: (context) => HomePage()),
                                         );
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text("Invalid username or password")),
+                                        SnackBar(content: Text("Invalid E-Mail or password")),
                                         );
                                       }
                                     }
@@ -180,13 +180,13 @@ Widget _textFieldName(TextEditingController myController, FocusNode myFocusNode)
               controller: myController,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your username';
+                  return 'Please enter your E-Mail';
                 }
                 return null;
               },
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.person_outline),
-                labelText: 'Username',
+                labelText: 'E-Mail',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(20.0)),
                 ),
@@ -207,7 +207,7 @@ Widget _textFieldPassword(TextEditingController myController) {
               controller: myController,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your username';
+                  return 'Please enter your E-Mail';
                 }
                 return null;
               },
