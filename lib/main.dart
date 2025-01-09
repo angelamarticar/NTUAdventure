@@ -24,7 +24,7 @@ class CourseApp extends StatelessWidget {
     return MaterialApp(
       title: 'NTUAdventure',
       theme: ThemeHelper().themedata(),
-      home: HomePage(), // Set the default home page
+      home: LoginPage(), // Set the default home page
       debugShowCheckedModeBanner: false, // Disable the debug banner
     );
   }
