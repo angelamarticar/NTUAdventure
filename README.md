@@ -100,7 +100,7 @@ The following Flutter packages are required to run the app:
 - structure changes: language and semester is part of course information instead of part of course rating
 ---
 
-##Further developement:
+## Further developement:
 - control over ones account e.g. change password, set profile picture, account recovery
 - different rights for different user groups e.g. professors can create courses, change course information, esnOrganisers can create events and receive insights on the signups
 - chat function
