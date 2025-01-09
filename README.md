@@ -15,8 +15,10 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-Further developement:
-- control over ones account e.g. change password, set profile picture
+##Further developement:
+- control over ones account e.g. change password, set profile picture, account recovery
 - different rights for different user groups e.g. professors can create courses, change course information, esnOrganisers can create events and receive insights on the signups
 - chat function
 - walktrough application functionalities with paNTUA (ESN mascot) upon first opening
+- increase speed of application
+  
