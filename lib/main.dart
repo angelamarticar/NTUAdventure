@@ -1,10 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'package:ntuadventure/pages/calendar_page.dart';
-import 'package:ntuadventure/pages/home_page.dart';
 import 'package:ntuadventure/pages/login_page.dart';
-import 'package:ntuadventure/pages/map_page.dart';
-import 'package:ntuadventure/pages/course_page.dart';
 import 'package:ntuadventure/theme/theme_helper.dart';
 import 'package:ntuadventure/db_helper.dart';
 
