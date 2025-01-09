@@ -9,7 +9,6 @@ NTUAdventure is a Flutter-based mobile application designed to assist users in m
 - [Usage Instructions](#usage-instructions)
 - [Requirements](#requirements)
 - [Key Features](#key-features)
-- [Known Issues and Limitations](#known-issues-and-limitations)
 - [Changes from Phase 2 Prototype](#changes-from-phase-2-prototype)
 
 
